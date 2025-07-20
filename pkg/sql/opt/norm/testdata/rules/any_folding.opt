@@ -1,0 +1,36 @@
+# Test FoldAnyWithConst rule for issue #132328
+opt
+scalar
+0.1 < ANY (ARRAY[0.0, 0.4])
+----
+true
+
+opt
+scalar
+0.5 < ANY (ARRAY[0.6, 0.7])
+----
+false
+
+opt
+scalar
+1 < ANY (ARRAY[NULL, 2])
+----
+true
+
+opt
+scalar
+1 < ANY (ARRAY[NULL, 3])
+----
+NULL
+
+opt
+scalar
+5 < ANY (ARRAY[1, age, 10])
+----
+true  # Skips non-constant age, folds on 5 > 1
+
+opt
+scalar
+5 < ANY (ARRAY[6, age, 10])
+----
+false  # Folds on constants, skips age
