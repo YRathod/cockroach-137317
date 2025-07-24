@@ -716,12 +716,25 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		elems = e.Elems
 	case *memo.ArrayExpr:
 		elems = e.Elems
+	case *memo.SubqueryExpr:
+		v, vok := e.Op.(*memo.ValuesExpr)
+		if !vok || len(v.Cols) != 1 {
+			return nil, false
+		}
+		elems = make(memo.ScalarListExpr, len(v.Rows))
+		for i, row := range v.Rows {
+			tuple, tok := row.(*memo.TupleExpr)
+			if !tok || len(tuple.Elems) != 1 {
+				return nil, false
+			}
+			elems[i] = tuple.Elems[0]
+		}
 	default:
 		return nil, false
 	}
 
 	if len(elems) == 0 {
-		return c.f.ConstructFalse(), true // Empty → False.
+		return c.f.ConstructFalse(), true
 	}
 
 	var foundTrue, foundNull, hasNonConstant bool
@@ -734,7 +747,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 
 		op, flip, negate, valid := memo.FindComparisonOverload(cmp, left.DataType(), elem.DataType())
 		if !valid || !c.CanFoldOperator(op.Volatility) {
-			hasNonConstant = true // Treat invalid as non-foldable.
+			hasNonConstant = true
 			continue
 		}
 
@@ -749,11 +762,10 @@ func (c *CustomFuncs) FoldAnyWithConst(
 
 		result, err := eval.BinaryOp(c.f.ctx, c.f.evalCtx, op.EvalOp, l, r)
 		if err != nil {
-			// Propagate KV errors (e.g., from eval).
 			if errors.HasInterface(err, (*kvpb.ErrorDetailInterface)(nil)) {
 				panic(err)
 			}
-			hasNonConstant = true // Skip on error.
+			hasNonConstant = true
 			continue
 		}
 		b, ok := result.(*tree.DBool)
@@ -767,7 +779,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		}
 		if val {
 			foundTrue = true
-			break // Early exit on True.
+			break
 		}
 	}
 
@@ -775,7 +787,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		return c.f.ConstructTrue(), true
 	}
 	if hasNonConstant {
-		return nil, false // Variables present, no fold.
+		return nil, false
 	}
 	if foundNull {
 		return c.f.ConstructNull(types.Bool), true
