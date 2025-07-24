@@ -238,11 +238,11 @@ $result
 # 0.1 < ANY (c0, 0.4) can be simplified since 0.1 < 0.4 is True
 [FoldAnyWithConst, Normalize]
 (AnyScalar
-    $left:* & (IsConstValueOrGroupOfConstValues $left)
-    $right:* & (Or (Tuple *) (Array *) (Subquery (Values *)))
-    (Let
-        ($result $ok):(FoldAnyWithConst (OpName) $left $right) $ok
-    )
+$left:* & (IsConstValueOrGroupOfConstValues $left)
+$right:* & (Or (Tuple *) (Or (Array *) (Subquery (Values *))))
 )
 =>
+(Let
+($result $ok):(FoldAnyWithConst (OpName) $left $right) $ok
 $result
+)
