@@ -734,7 +734,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 	}
 
 	if len(elems) == 0 {
-		return c.f.ConstructFalse(), true
+		return c.f.ConstructFalse(), true // Empty → False.
 	}
 
 	var foundTrue, foundNull, hasNonConstant bool
@@ -747,7 +747,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 
 		op, flip, negate, valid := memo.FindComparisonOverload(cmp, left.DataType(), elem.DataType())
 		if !valid || !c.CanFoldOperator(op.Volatility) {
-			hasNonConstant = true
+			hasNonConstant = true // Treat invalid as non-foldable.
 			continue
 		}
 
@@ -762,10 +762,11 @@ func (c *CustomFuncs) FoldAnyWithConst(
 
 		result, err := eval.BinaryOp(c.f.ctx, c.f.evalCtx, op.EvalOp, l, r)
 		if err != nil {
+			// Propagate KV errors (e.g., from eval).
 			if errors.HasInterface(err, (*kvpb.ErrorDetailInterface)(nil)) {
 				panic(err)
 			}
-			hasNonConstant = true
+			hasNonConstant = true // Skip on error.
 			continue
 		}
 		b, ok := result.(*tree.DBool)
@@ -779,7 +780,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		}
 		if val {
 			foundTrue = true
-			break
+			break // Early exit on True.
 		}
 	}
 
