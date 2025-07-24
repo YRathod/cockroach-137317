@@ -236,16 +236,13 @@ $result
 # FoldAnyWithConst simplifies a scalar ANY operation when the left side is constant
 # and the right side contains a constant that can determine the result, like this:
 # 0.1 < ANY (c0, 0.4) can be simplified since 0.1 < 0.4 is True
-# FoldAnyWithConst simplifies a scalar ANY operation when the left side is constant
-# and the right side contains a constant that can determine the result, like this:
-# 0.1 < ANY (c0, 0.4) can be simplified since 0.1 < 0.4 is True
 [FoldAnyWithConst, Normalize]
 (AnyScalar
     $left:* & (IsConstValueOrGroupOfConstValues $left)
-    $right:* 
+    $right:* & (Or (Tuple *) (Array *) (Subquery (Values *)))
+    (Let
+        ($result $ok):(FoldAnyWithConst (OpName) $left $right) $ok
+    )
 )
 =>
-(Let
-    ($result $ok):(FoldAnyWithConst (OpName) $left $right) $ok
-    $result
-)
+$result
