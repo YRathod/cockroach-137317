@@ -716,19 +716,6 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		elems = e.Elems
 	case *memo.ArrayExpr:
 		elems = e.Elems
-	case *memo.SubqueryExpr:
-		v, vok := e.Op.(*memo.ValuesExpr)
-		if !vok || len(v.Cols) != 1 {
-			return nil, false
-		}
-		elems = make(memo.ScalarListExpr, len(v.Rows))
-		for i, row := range v.Rows {
-			tuple, tok := row.(*memo.TupleExpr)
-			if !tok || len(tuple.Elems) != 1 {
-				return nil, false
-			}
-			elems[i] = tuple.Elems[0]
-		}
 	default:
 		return nil, false
 	}
