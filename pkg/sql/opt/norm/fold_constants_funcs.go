@@ -755,6 +755,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		if flip {
 			l, r = r, l
 		}
+		log.Printf("op.CalledOnNullInput: %v, l: %s, r: %s", op.CalledOnNullInput, l, r)
 		if !op.CalledOnNullInput && (l == tree.DNull || r == tree.DNull) {
 			foundNull = true
 			continue
