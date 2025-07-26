@@ -239,8 +239,10 @@ $result
 [FoldAnyWithConst, Normalize]
 (AnyScalar
     $left:* & (IsConstValueOrGroupOfConstValues $left)
-    $right:(Tuple * | Array * | Subquery (Values *))
-    & (Let ($result $ok):(FoldAnyWithConst (OpName) $left $right) $ok)
+    $right:* &
+    (Let
+        ($result $ok):(FoldAnyWithConst (OpName) $left $right) $ok
+    )
 )
 =>
 $result
