@@ -754,10 +754,10 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		if err != nil {
 			// Propagate KV errors (e.g., from eval).
 			if errors.HasInterface(err, (*kvpb.ErrorDetailInterface)(nil)) {
+				log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
 				panic(err)
 			}
-			hasNonConstant = true // Skip on error.
-			continue
+			return nil, false
 		}
 		b, ok := result.(*tree.DBool)
 		if !ok {
