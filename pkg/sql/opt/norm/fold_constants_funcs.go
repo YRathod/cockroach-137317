@@ -749,7 +749,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 			foundNull = true
 			continue
 		}
-
+	  log.Warningf(c.f.ctx, "eval.BinaryOp(c.f.ctx, c.f.evalCtx, %v, %v, %v)", op.EvalOp, l, r)
 		result, err := eval.BinaryOp(c.f.ctx, c.f.evalCtx, op.EvalOp, l, r)
 		if err != nil {
 			// Propagate KV errors (e.g., from eval).
