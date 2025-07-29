@@ -757,6 +757,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 				log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
 				panic(err)
 			}
+			log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
 			return nil, false
 		}
 		b, ok := result.(*tree.DBool)
