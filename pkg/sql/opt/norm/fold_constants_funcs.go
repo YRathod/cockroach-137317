@@ -727,15 +727,16 @@ func (c *CustomFuncs) FoldAnyWithConst(
 
 	var foundTrue, foundNull, hasNonConstant bool
 	for _, elem := range elems {
+		log.Warningf(c.f.ctx, "elem")
 		if !memo.CanExtractConstDatum(elem) {
 			hasNonConstant = true
 			continue
 		}
 
 		elemDatum := memo.ExtractConstDatum(elem)
-
+		log.Warningf(c.f.ctx, "elemDatum")
 		op, flip, negate, valid := memo.FindComparisonOverload(cmp, left.DataType(), elem.DataType())
-
+    log.Warningf(c.f.ctx, "memo.FindComparisonOverload")
 		if !valid || !c.CanFoldOperator(op.Volatility) {
 			hasNonConstant = true // Treat invalid as non-foldable.
 			continue
@@ -745,6 +746,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		if flip {
 			l, r = r, l
 		}
+		log.Warningf(c.f.ctx, "l: %v r: %v ", l,r)
 		if !op.CalledOnNullInput && (l == tree.DNull || r == tree.DNull) {
 			foundNull = true
 			continue
