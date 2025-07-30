@@ -729,32 +729,30 @@ func (c *CustomFuncs) FoldAnyWithConst(
 	var foundTrue, foundNull, hasNonConstant bool
 	for _, elem := range elems {
 		log.Warningf(c.f.ctx, "elem")
-		elemDatum := memo.ExtractConstDatum(elem)
-		if elemDatum == nil {
+
+		op, flip, negate, valid := memo.FindComparisonOverload(cmp, left.DataType(), elem.DataType())
+
+    log.Warningf(c.f.ctx, "memo.FindComparisonOverload")
+
+		if !valid || !c.CanFoldOperator(op.Volatility) {
 			hasNonConstant = true
 			continue
 		}
-		log.Warningf(c.f.ctx, "elemDatum")
-		op, flip, negate, valid := memo.FindComparisonOverload(cmp, left.DataType(), elem.DataType())
-    log.Warningf(c.f.ctx, "memo.FindComparisonOverload")
-		if !valid || !c.CanFoldOperator(op.Volatility) {
-			hasNonConstant = true // Treat invalid as non-foldable.
-			continue
-		}
+		
+		elemDatum := memo.ExtractConstDatum(elem)
 
 		l, r := leftDatum, elemDatum
 		if flip {
 			l, r = r, l
 		}
-		log.Warningf(c.f.ctx, "l: %v r: %v ", l,r)
+		
 		if !op.CalledOnNullInput && (l == tree.DNull || r == tree.DNull) {
 			foundNull = true
 			continue
-		}
-	  log.Warningf(c.f.ctx, "eval.BinaryOp(c.f.ctx, c.f.evalCtx, %v, %v, %v)", op.EvalOp, l, r)
+		} 
 		result, err := eval.BinaryOp(c.f.ctx, c.f.evalCtx, op.EvalOp, l, r)
+		
 		if err != nil {
-			// Propagate KV errors (e.g., from eval).
 			if errors.HasInterface(err, (*kvpb.ErrorDetailInterface)(nil)) {
 				log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
 				panic(err)
@@ -775,10 +773,6 @@ func (c *CustomFuncs) FoldAnyWithConst(
 			val = !val
 		}
 
-		//if val {
-		//	foundTrue = true
-		//	break // Early exit on True.
-		//}
 	}
 
 	if foundTrue {
@@ -792,4 +786,3 @@ func (c *CustomFuncs) FoldAnyWithConst(
 	}
 	return c.f.ConstructFalse(), true
 }
-
