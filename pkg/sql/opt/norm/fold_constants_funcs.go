@@ -720,7 +720,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 	default:
 		return nil, false
 	}
-
+ log.Warningf(c.f.ctx, "len(elems): %v", len(elems))
 	if len(elems) == 0 {
 		return c.f.ConstructFalse(), true // Empty → False.
 	}
