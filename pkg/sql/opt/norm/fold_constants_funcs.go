@@ -738,9 +738,9 @@ func (c *CustomFuncs) FoldAnyWithConst(
 			hasNonConstant = true
 			continue
 		}
-		
+		log.Warningf(c.f.ctx, "before memo.ExtractConstDatum(%v) ", elem) 
 		elemDatum := memo.ExtractConstDatum(elem)
-
+    log.Warningf(c.f.ctx, "after memo.ExtractConstDatum(elem)") 
 		l, r := leftDatum, elemDatum
 		if flip {
 			l, r = r, l
@@ -751,13 +751,13 @@ func (c *CustomFuncs) FoldAnyWithConst(
 			continue
 		} 
 		result, err := eval.BinaryOp(c.f.ctx, c.f.evalCtx, op.EvalOp, l, r)
-		
+
 		if err != nil {
+			log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
 			if errors.HasInterface(err, (*kvpb.ErrorDetailInterface)(nil)) {
 				log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
 				panic(err)
 			}
-			log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
 			return nil, false
 		}
 		if foundTrue {
