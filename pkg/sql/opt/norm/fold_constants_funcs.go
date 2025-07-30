@@ -729,12 +729,11 @@ func (c *CustomFuncs) FoldAnyWithConst(
 	var foundTrue, foundNull, hasNonConstant bool
 	for _, elem := range elems {
 		log.Warningf(c.f.ctx, "elem")
-		if !memo.CanExtractConstDatum(elem) {
+		elemDatum := memo.ExtractConstDatum(elem)
+		if elemDatum == nil {
 			hasNonConstant = true
 			continue
 		}
-
-		elemDatum := memo.ExtractConstDatum(elem)
 		log.Warningf(c.f.ctx, "elemDatum")
 		op, flip, negate, valid := memo.FindComparisonOverload(cmp, left.DataType(), elem.DataType())
     log.Warningf(c.f.ctx, "memo.FindComparisonOverload")
@@ -763,6 +762,9 @@ func (c *CustomFuncs) FoldAnyWithConst(
 			log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
 			return nil, false
 		}
+		if foundTrue {
+			continue
+		}
 		b, ok := result.(*tree.DBool)
 		if !ok {
 			hasNonConstant = true
@@ -773,10 +775,10 @@ func (c *CustomFuncs) FoldAnyWithConst(
 			val = !val
 		}
 
-		if val {
-			foundTrue = true
-			break // Early exit on True.
-		}
+		//if val {
+		//	foundTrue = true
+		//	break // Early exit on True.
+		//}
 	}
 
 	if foundTrue {
