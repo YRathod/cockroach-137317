@@ -705,7 +705,6 @@ func (c *CustomFuncs) FoldFunction(
 //   - Otherwise (all False), returns False.
 //
 // - Otherwise, cannot fold.
-
 func (c *CustomFuncs) FoldAnyWithConst(
 	cmp opt.Operator, left, right opt.ScalarExpr,
 ) (_ opt.ScalarExpr, ok bool) {
@@ -721,7 +720,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 	default:
 		return nil, false
 	}
- log.Warningf(c.f.ctx, "len(elems): %v %v", len(elems), elems)
+	log.Warningf(c.f.ctx, "len(elems): %v %v", len(elems), elems)
 	if len(elems) == 0 {
 		return c.f.ConstructFalse(), true // Empty → False.
 	}
@@ -730,26 +729,42 @@ func (c *CustomFuncs) FoldAnyWithConst(
 	for _, elem := range elems {
 		log.Warningf(c.f.ctx, "elem")
 
-		op, flip, negate, valid := memo.FindComparisonOverload(cmp, left.DataType(), elem.DataType())
+		// NEW: Pre-evaluate the element if it is a foldable binary expression,
+		// like division. This allows expressions such as `1 / 0` to be evaluated
+		// before the comparison logic.
+		evaluatedElem := elem
+		if divExpr, isDiv := elem.(*memo.DivExpr); isDiv {
+			// It's a division expression. Try to fold it first.
+			if folded, ok := c.FoldBinary(opt.DivOp, divExpr.Left, divExpr.Right); ok {
+				// If folding is successful, use the resulting constant value for
+				// the comparison.
+				evaluatedElem = folded
+			}
+			// If FoldBinary fails, evaluatedElem remains the original DivExpr.
+			// The logic below will correctly treat it as a non-constant.
+		}
 
-    log.Warningf(c.f.ctx, "memo.FindComparisonOverload")
+		// The rest of the loop now uses `evaluatedElem` instead of `elem`.
+		op, flip, negate, valid := memo.FindComparisonOverload(cmp, left.DataType(), evaluatedElem.DataType())
+
+		log.Warningf(c.f.ctx, "memo.FindComparisonOverload")
 
 		if !valid || !c.CanFoldOperator(op.Volatility) {
 			hasNonConstant = true
 			continue
 		}
-		log.Warningf(c.f.ctx, "before memo.ExtractConstDatum(%v) ", elem) 
-		elemDatum := memo.ExtractConstDatum(elem)
-    log.Warningf(c.f.ctx, "after memo.ExtractConstDatum(elem)") 
+		log.Warningf(c.f.ctx, "before memo.ExtractConstDatum(%v) ", evaluatedElem)
+		elemDatum := memo.ExtractConstDatum(evaluatedElem)
+		log.Warningf(c.f.ctx, "after memo.ExtractConstDatum(elem)")
 		l, r := leftDatum, elemDatum
 		if flip {
 			l, r = r, l
 		}
-		
+
 		if !op.CalledOnNullInput && (l == tree.DNull || r == tree.DNull) {
 			foundNull = true
 			continue
-		} 
+		}
 		result, err := eval.BinaryOp(c.f.ctx, c.f.evalCtx, op.EvalOp, l, r)
 
 		if err != nil {
@@ -768,11 +783,14 @@ func (c *CustomFuncs) FoldAnyWithConst(
 			hasNonConstant = true
 			continue
 		}
-		val := *b
+		val := bool(*b)
 		if negate {
 			val = !val
 		}
 
+		if val {
+			foundTrue = true
+		}
 	}
 
 	if foundTrue {
