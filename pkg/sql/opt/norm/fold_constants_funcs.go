@@ -708,7 +708,7 @@ func (c *CustomFuncs) FoldFunction(
 func (c *CustomFuncs) FoldAnyWithConst(
 	cmp opt.Operator, left, right opt.ScalarExpr,
 ) (_ opt.ScalarExpr, ok bool) {
-	log.Warningf(c.f.ctx, "FoldAnyWithConst: cmp=%v, left=%v, right=%v", cmp, left, right)
+//	log.Warningf(c.f.ctx, "FoldAnyWithConst: cmp=%v, left=%v, right=%v", cmp, left, right)
 	leftDatum := memo.ExtractConstDatum(left)
 
 	var elems memo.ScalarListExpr
@@ -720,7 +720,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 	default:
 		return nil, false
 	}
-	log.Warningf(c.f.ctx, "len(elems): %v %v", len(elems), elems)
+	//log.Warningf(c.f.ctx, "len(elems): %v %v", len(elems), elems)
 	if len(elems) == 0 {
 		return c.f.ConstructFalse(), true // Empty → False.
 	}
@@ -755,7 +755,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 			hasNonConstant = true
 			continue
 		}
-		log.Warningf(c.f.ctx, "before memo.ExtractConstDatum(%v) ", evaluatedElem)
+		//log.Warningf(c.f.ctx, "before memo.ExtractConstDatum(%v) ", evaluatedElem)
 		elemDatum := memo.ExtractConstDatum(evaluatedElem)
 		//log.Warningf(c.f.ctx, "after memo.ExtractConstDatum(elem)")
 		l, r := leftDatum, elemDatum
