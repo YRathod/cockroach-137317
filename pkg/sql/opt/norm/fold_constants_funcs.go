@@ -13,6 +13,8 @@ import (
 	"github.com/cockroachdb/cockroach/pkg/sql/opt/cat"
 	"github.com/cockroachdb/cockroach/pkg/sql/opt/memo"
 	"github.com/cockroachdb/cockroach/pkg/sql/parser"
+	"github.com/cockroachdb/cockroach/pkg/sql/pgwire/pgcode"
+	"github.com/cockroachdb/cockroach/pkg/sql/pgwire/pgerror"
 	"github.com/cockroachdb/cockroach/pkg/sql/privilege"
 	"github.com/cockroachdb/cockroach/pkg/sql/sem/cast"
 	"github.com/cockroachdb/cockroach/pkg/sql/sem/eval"
@@ -750,7 +752,8 @@ func (c *CustomFuncs) FoldAnyWithConst(cmp opt.Operator, left, right opt.ScalarE
 			}()
 			if isZero {
 				// Explicitly panic if division by zero is detected.
-				panic(errors.New("division by zero"))
+				//panic(errors.New("division by zero"))
+				panic(pgerror.New(pgcode.DivisionByZero, "division by zero"))
 			}
 		}
 		// The rest of the loop now uses `evaluatedElem` instead of `elem`.
