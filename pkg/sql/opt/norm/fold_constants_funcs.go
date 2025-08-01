@@ -734,11 +734,13 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		// before the comparison logic.
 		evaluatedElem := elem
 		if divExpr, isDiv := elem.(*memo.DivExpr); isDiv {
+				log.Warningf(c.f.ctx, "divExpr")
 			// It's a division expression. Try to fold it first.
 			if folded, ok := c.FoldBinary(opt.DivOp, divExpr.Left, divExpr.Right); ok {
 				// If folding is successful, use the resulting constant value for
 				// the comparison.
 				evaluatedElem = folded
+       log.Warningf(c.f.ctx, "evaluatedElem: %v",evaluatedElem)
 			}
 			// If FoldBinary fails, evaluatedElem remains the original DivExpr.
 			// The logic below will correctly treat it as a non-constant.
@@ -747,7 +749,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		// The rest of the loop now uses `evaluatedElem` instead of `elem`.
 		op, flip, negate, valid := memo.FindComparisonOverload(cmp, left.DataType(), evaluatedElem.DataType())
 
-		log.Warningf(c.f.ctx, "memo.FindComparisonOverload")
+	//	log.Warningf(c.f.ctx, "memo.FindComparisonOverload")
 
 		if !valid || !c.CanFoldOperator(op.Volatility) {
 			hasNonConstant = true
@@ -755,7 +757,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		}
 		log.Warningf(c.f.ctx, "before memo.ExtractConstDatum(%v) ", evaluatedElem)
 		elemDatum := memo.ExtractConstDatum(evaluatedElem)
-		log.Warningf(c.f.ctx, "after memo.ExtractConstDatum(elem)")
+		//log.Warningf(c.f.ctx, "after memo.ExtractConstDatum(elem)")
 		l, r := leftDatum, elemDatum
 		if flip {
 			l, r = r, l
@@ -768,7 +770,7 @@ func (c *CustomFuncs) FoldAnyWithConst(
 		result, err := eval.BinaryOp(c.f.ctx, c.f.evalCtx, op.EvalOp, l, r)
 
 		if err != nil {
-			log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
+			//log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
 			if errors.HasInterface(err, (*kvpb.ErrorDetailInterface)(nil)) {
 				log.Warningf(c.f.ctx, "Propagate KV errors: %v", err)
 				panic(err)
