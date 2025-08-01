@@ -734,30 +734,25 @@ func (c *CustomFuncs) FoldAnyWithConst(cmp opt.Operator, left, right opt.ScalarE
 			// It's a division expression. Manually fold it to get its value.
 			// This will panic on expressions like 1/0, allowing the execution
 			// engine's panic handling to be tested.
-			lDivDatum := memo.ExtractConstDatum(divExpr.Left)
 			rDivDatum := memo.ExtractConstDatum(divExpr.Right)
 
-			// Find the overload for the division itself.
-			divOp, ok := memo.FindBinaryOverload(opt.DivOp, lDivDatum.ResolvedType(), rDivDatum.ResolvedType())
-			if !ok || !c.CanFoldOperator(divOp.Volatility) {
-				// If we can't fold the division, treat it as a non-constant.
-				hasNonConstant = true
-				continue
+				// Check if the right-hand side (the divisor) is zero.
+			isZero := func() bool {
+				switch d := rDivDatum.(type) {
+				case *tree.DInt:
+					return *d == 0
+				case *tree.DFloat:
+					return *d == 0
+				case *tree.DDecimal:
+					return d.IsZero()
+				}
+				return false
+			}()
+			if isZero {
+				// Explicitly panic if division by zero is detected.
+				panic(errors.New("division by zero"))
 			}
-
-			// Evaluate the division. This is where a "division by zero" panic will occur.
-			divResult, err := eval.BinaryOp(c.f.ctx, c.f.evalCtx, divOp.EvalOp, lDivDatum, rDivDatum)
-			if err != nil {
-				// This division resulted in a regular error, not a panic.
-				// Treat as non-constant and continue.
-				hasNonConstant = true
-				continue
-			}
-
-			// Create a new constant expression from the division result.
-			evaluatedElem = c.f.ConstructConstVal(divResult, divOp.ReturnType)
 		}
-
 		// The rest of the loop now uses `evaluatedElem` instead of `elem`.
 		op, flip, negate, valid := memo.FindComparisonOverload(cmp, left.DataType(), evaluatedElem.DataType())
 
