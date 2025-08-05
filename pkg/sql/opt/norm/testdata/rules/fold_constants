@@ -1353,8 +1353,8 @@ values
 # FoldAnyWithConst
 # --------------------------------------------------
 norm expect=FoldAnyWithConst
-SELECT 1 = ANY(NULL::INT[]);
-
+SELECT 1 = ANY(NULL::INT[])
+----
 values
  ├── columns: "?column?":1!null
  ├── cardinality: [1 - 1]
@@ -1363,8 +1363,8 @@ values
  └── (NULL,)
 
 norm expect=FoldAnyWithConst
-SELECT 1 < ANY(Null, 2); 
-
+SELECT 1 < ANY(Null, 2) 
+----
 values
  ├── columns: "?column?":1!null
  ├── cardinality: [1 - 1]
