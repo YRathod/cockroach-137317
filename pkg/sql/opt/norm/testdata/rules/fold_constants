@@ -1347,3 +1347,45 @@ values
  ├── cardinality: [0 - 0]
  ├── key: ()
  └── fd: ()-->(1-6)
+
+ 
+# --------------------------------------------------
+# FoldAnyWithConst
+# --------------------------------------------------
+norm expect=FoldAnyWithConst
+SELECT 1 = ANY(NULL::INT[]);
+# PLACEHOLDER
+
+norm expect=FoldAnyWithConst
+SELECT 1 = ANY(ARRAY[1, 1/0]);
+# PLACEHOLDER
+
+
+norm expect=FoldAnyWithConst
+SELECT 1 = ANY(ARRAY[1/0, 1]);
+# PLACEHOLDER
+
+norm expect=FoldAnyWithConst
+SELECT 0.1 > ANY(NULL, 0.3);
+# PLACEHOLDER
+
+norm expect=FoldAnyWithConst
+SELECT 1 = ANY(NULL::INT[]);
+# PLACEHOLDER
+
+norm expect=FoldAnyWithConst
+SELECT 1 = ANY(NULL::INT[]);
+# PLACEHOLDER
+
+norm expect=FoldAnyWithConst
+SELECT 3 > ANY(ARRAY[1, 2]):
+# PLACEHOLDER
+
+norm expect=FoldAnyWithConst
+SELECT 1 < ANY(NOW(), 2);  
+# PLACEHOLDER
+
+norm expect=FoldAnyWithConst
+SELECT 'a' < ANY(ARRAY[1, 2]);
+# PLACEHOLDER
+
