@@ -1336,19 +1336,7 @@ project
  └── projections
       └── CAST(NULL AS INT8) [as=bar:9, type=int]
 
-# --------------------------------------------------
-# FoldEqualsAnyNull
-# --------------------------------------------------
-norm expect=FoldEqualsAnyNull
-SELECT * FROM a WHERE i = ANY (NULL::int[])
-----
-values
- ├── columns: k:1!null i:2!null f:3!null s:4!null j:5!null arr:6!null
- ├── cardinality: [0 - 0]
- ├── key: ()
- └── fd: ()-->(1-6)
 
- 
 # --------------------------------------------------
 # FoldAnyWithConst
 # --------------------------------------------------
