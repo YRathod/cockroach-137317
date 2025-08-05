@@ -1354,7 +1354,7 @@ values
 # --------------------------------------------------
 
 norm expect=FoldAnyWithConst
-SELECT 1 < ANY(0.5, 2) 
+SELECT 1 < ANY(NULL, 2) 
 ----
 values
  ├── columns: "?column?":1!null
