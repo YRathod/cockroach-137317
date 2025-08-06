@@ -718,8 +718,6 @@ func (c *CustomFuncs) FoldAnyWithConst(cmp opt.Operator, left, right opt.ScalarE
 		elems = e.Elems
 	case *memo.ArrayExpr:
 		elems = e.Elems
-	case *memo.NullExpr:
-    return nil, true
 	default:
 		return nil, false
 	}
