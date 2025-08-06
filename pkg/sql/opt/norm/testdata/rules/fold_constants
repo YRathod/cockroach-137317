@@ -1359,3 +1359,9 @@ values
  ├── key: ()
  ├── fd: ()-->(1)
  └── (true,)
+
+norm expect=FoldAnyWithConst
+SELECT 1 < ANY(2, 1/0) 
+----
+ERROR: division by zero
+SQLSTATE: 22012
