@@ -1364,3 +1364,9 @@ norm expect=FoldAnyWithConst
 SELECT 1 < ANY(2, 1/0) 
 ----
 error (22012): division by zero
+
+norm expect=FoldAnyWithConst
+SELECT 1 = ANY(ARRAY[1/0, 1]);
+----
+error (22012): division by zero
+
