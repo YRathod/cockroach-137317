@@ -1348,7 +1348,7 @@ values
  ├── cardinality: [1 - 1]
  ├── key: ()
  ├── fd: ()-->(1)
- └── (null,)
+ └── (NULL,)
 
 norm expect=FoldAnyWithConst
 SELECT 1 < ANY(NULL, 2) 
