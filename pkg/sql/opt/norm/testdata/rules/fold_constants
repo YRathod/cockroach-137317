@@ -1380,4 +1380,9 @@ values
  ├── fd: ()-->(1)
  └── (NULL,)
 
+norm expect=FoldAnyWithConst
+SELECT 1 = ANY(ARRAY['a', 2]) 
+----
+error (22023): unsupported comparison operator: 1 = ANY ARRAY['a', 2]: could not parse "a" as type int: strconv.ParseInt: parsing "a": invalid syntax
+
 
